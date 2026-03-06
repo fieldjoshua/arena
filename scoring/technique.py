@@ -20,6 +20,8 @@ class TechniqueSignature:
     tokens_consumed: int = 0
     wall_seconds: int = 0
     lines_changed: int = 0
+    api_cost_usd: float = 0.0
+    human_iterations: int = 0
     notes: str = ""
 
     def __post_init__(self) -> None:
@@ -51,6 +53,8 @@ class TechniqueSignature:
             tokens_consumed=data.get("tokens_consumed", 0),
             wall_seconds=data.get("wall_seconds", 0),
             lines_changed=data.get("lines_changed", 0),
+            api_cost_usd=data.get("api_cost_usd", 0.0),
+            human_iterations=data.get("human_iterations", 0),
             notes=data.get("notes", ""),
         )
 
@@ -61,6 +65,8 @@ class TechniqueSignature:
             "tokens_consumed": self.tokens_consumed,
             "wall_seconds": self.wall_seconds,
             "lines_changed": self.lines_changed,
+            "api_cost_usd": self.api_cost_usd,
+            "human_iterations": self.human_iterations,
             "notes": self.notes,
             "efficiency_ratio": round(self.efficiency_ratio, 1),
         }
@@ -72,37 +78,27 @@ def score_submission(
     challenge_max_tokens: int = 100_000,
     challenge_par_lines: int = 50,
     challenge_median_seconds: int = 3600,
+    challenge_median_cost: float = 1.0,
 ) -> dict:
     """Compute composite score for a submission.
 
-    Args:
-        correctness_pct: 0-100, percentage of test cases passed.
-        technique: The submission's technique signature.
-        challenge_max_tokens: Max tokens observed for this challenge (for normalization).
-        challenge_par_lines: "Par" line count for this challenge.
-        challenge_median_seconds: Median wall time for this challenge.
+    Weights: correctness 40%, token efficiency 20%, speed 20%,
+    solution size 10%, cost efficiency 10%.
 
-    Returns:
-        Dict with component scores and composite.
+    Technique signatures (tools, iterations) are included in output
+    but do not affect the composite score (display-only in v0).
     """
     # Correctness (40%)
     correctness = max(0.0, min(100.0, correctness_pct))
 
-    # Efficiency (30%) — fewer tokens = better
+    # Token efficiency (20%) — fewer tokens = better
     if challenge_max_tokens > 0 and technique.tokens_consumed > 0:
-        efficiency = 100.0 * (1.0 - technique.tokens_consumed / challenge_max_tokens)
-        efficiency = max(0.0, min(100.0, efficiency))
+        token_efficiency = 100.0 * (1.0 - technique.tokens_consumed / challenge_max_tokens)
+        token_efficiency = max(0.0, min(100.0, token_efficiency))
     else:
-        efficiency = 100.0  # human-only or no token data
+        token_efficiency = 100.0  # human-only or no token data
 
-    # Elegance (15%) — fewer lines = better
-    if technique.lines_changed <= challenge_par_lines:
-        elegance = 100.0
-    else:
-        over = technique.lines_changed - challenge_par_lines
-        elegance = max(0.0, 100.0 - (over / challenge_par_lines) * 100.0)
-
-    # Speed (15%) — faster = better
+    # Speed (20%) — faster = better
     if technique.wall_seconds <= 0:
         speed = 50.0  # no data
     elif technique.wall_seconds <= challenge_median_seconds:
@@ -111,18 +107,39 @@ def score_submission(
         over = technique.wall_seconds - challenge_median_seconds
         speed = max(0.0, 100.0 - (over / challenge_median_seconds) * 100.0)
 
+    # Solution size (10%) — fewer lines = better
+    if technique.lines_changed <= challenge_par_lines:
+        solution_size = 100.0
+    else:
+        over = technique.lines_changed - challenge_par_lines
+        solution_size = max(0.0, 100.0 - (over / challenge_par_lines) * 100.0)
+
+    # Cost efficiency (10%) — lower API cost = better
+    if technique.api_cost_usd <= 0:
+        cost_efficiency = 100.0  # human-only or not reported
+    elif challenge_median_cost > 0:
+        if technique.api_cost_usd <= challenge_median_cost:
+            cost_efficiency = 100.0
+        else:
+            over = technique.api_cost_usd - challenge_median_cost
+            cost_efficiency = max(0.0, 100.0 - (over / challenge_median_cost) * 100.0)
+    else:
+        cost_efficiency = 50.0
+
     composite = (
         correctness * 0.40
-        + efficiency * 0.30
-        + elegance * 0.15
-        + speed * 0.15
+        + token_efficiency * 0.20
+        + speed * 0.20
+        + solution_size * 0.10
+        + cost_efficiency * 0.10
     )
 
     return {
         "correctness": round(correctness, 1),
-        "efficiency": round(efficiency, 1),
-        "elegance": round(elegance, 1),
+        "token_efficiency": round(token_efficiency, 1),
         "speed": round(speed, 1),
+        "solution_size": round(solution_size, 1),
+        "cost_efficiency": round(cost_efficiency, 1),
         "composite": round(composite, 1),
         "technique": technique.to_dict(),
     }

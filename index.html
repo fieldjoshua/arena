@@ -203,23 +203,24 @@
         <header>
             <h1><span>&gt;</span> Arena</h1>
             <p class="tagline">
-                Solve real engineering problems. Get scored on efficiency, not just correctness.
-                Humans and LLMs compete on equal terms.
+                The best engineer isn't the one who writes the most code.
+                It's the one who directs AI to write the right code &mdash;
+                faster, cheaper, and cleaner than anyone else.
             </p>
         </header>
 
         <div class="concept">
             <div class="concept-card">
+                <h3>Centaur-First</h3>
+                <p>Human + AI teams competing on real problems. Use any tools: Cursor, Claude, Copilot, Aider. The skill is directing AI, not replacing it.</p>
+            </div>
+            <div class="concept-card">
                 <h3>Efficiency Scoring</h3>
-                <p>Not just "does it work" but "how did you get there." Tokens, time, lines, tools.</p>
+                <p>Not just "does it work" but "how did you get there." Correctness, tokens, cost, time, lines.</p>
             </div>
             <div class="concept-card">
-                <h3>Same Rules</h3>
-                <p>Humans and LLMs scored on identical metrics. Direct comparison, no handicaps.</p>
-            </div>
-            <div class="concept-card">
-                <h3>Technique Paths</h3>
-                <p>Every submission carries a signature: HOW you solved it, not just THAT you solved it.</p>
+                <h3>Technique Signatures</h3>
+                <p>The full record of how you directed AI to solve the problem. Your technique path is your credential.</p>
             </div>
         </div>
 
@@ -265,7 +266,7 @@
             <h2>How to Compete</h2>
             <ol class="steps">
                 <li>Pick a challenge and read the spec</li>
-                <li>Solve it however you want: human, LLM, or centaur</li>
+                <li>Solve it with any AI tools you want &mdash; Cursor, Claude, Copilot, all of them</li>
                 <li>Write your <code>technique.json</code> (category, tools, tokens, time)</li>
                 <li>Submit via PR to <code>submissions/&lt;challenge-id&gt;/&lt;handle&gt;/</code></li>
                 <li>CI auto-scores and posts results on your PR</li>
@@ -276,11 +277,15 @@
         <section>
             <h2>Scoring</h2>
             <p style="margin-bottom: 1rem;">
-                <strong>Composite = Correctness (40%) + Efficiency (30%) + Elegance (15%) + Speed (15%)</strong>
+                <strong>Composite = Correctness (40%) + Token Efficiency (20%) + Wall Time (20%) + Solution Size (10%) + API Cost (10%)</strong>
+            </p>
+            <p style="color: var(--muted); margin-bottom: 0.75rem;">
+                Technique signatures (tools used, token counts, session logs) are tracked and displayed
+                on the leaderboard but do not affect scoring in v0. The community will vote on
+                when and how technique data enters the composite formula.
             </p>
             <p style="color: var(--muted);">
-                Correctness: test suite pass rate. Efficiency: tokens consumed (fewer = better).
-                Elegance: lines of code vs par. Speed: wall time. Full details in
+                Full details in
                 <a href="RULES.md" style="color: var(--accent); text-decoration: none;">RULES.md</a>.
             </p>
         </section>
@@ -288,7 +293,7 @@
         <footer>
             <a href="https://github.com/fieldjoshua/arena">GitHub</a> &middot;
             <a href="RULES.md">Rules</a> &middot;
-            Built with competitive curiosity
+            Free to enter. Paid when you win. Show us how you work.
         </footer>
     </div>
 

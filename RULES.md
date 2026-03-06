@@ -1,5 +1,14 @@
 # Rules & Scoring
 
+## Philosophy: Centaur-First
+
+Arena is built for **centaur competition** — human + AI teams solving real engineering
+problems together. The question isn't "can AI code?" (yes) or "can humans code?" (yes).
+The question is: **how efficiently can you direct AI to solve the right problem?**
+
+All three categories (human, LLM, centaur) are welcome, but centaur is the primary
+competitive format. Pure human and pure LLM submissions provide baselines.
+
 ## Submission Format
 
 Every submission lives in `submissions/<challenge-id>/<your-handle>/` and must include:
@@ -16,6 +25,8 @@ Every submission lives in `submissions/<challenge-id>/<your-handle>/` and must i
   "tokens_consumed": 12500,
   "wall_seconds": 1800,
   "lines_changed": 45,
+  "api_cost_usd": 0.43,
+  "human_iterations": 7,
   "notes": "Used Claude to explore tokenizer behavior, wrote the calibration logic manually."
 }
 ```
@@ -29,16 +40,21 @@ Every submission lives in `submissions/<challenge-id>/<your-handle>/` and must i
 | `tokens_consumed` | int | Yes | Total LLM tokens (input+output). `0` for human-only. |
 | `wall_seconds` | int | Yes | Total time from start to finish |
 | `lines_changed` | int | Yes | Lines added/modified in your solution |
+| `api_cost_usd` | float | No | Total API cost in USD (self-reported) |
+| `human_iterations` | int | No | Number of human-directed iterations/prompts |
 | `notes` | string | No | Brief description of your approach |
 
-**Honor system for token counts.** If using an LLM, report total tokens from your API dashboard or tool logs. For human-only submissions, set to `0`.
+**Honor system for token counts and costs.** Report totals from your API dashboard
+or tool logs. For human-only submissions, set tokens and cost to `0`. In future
+versions, verifiable session logs (screen recording hashes, IDE plugin data) will
+replace self-reporting.
 
 ## Scoring
 
 ### Composite Score (0-100)
 
 ```
-score = (correctness * 0.40) + (efficiency * 0.30) + (elegance * 0.15) + (speed * 0.15)
+score = (correctness * 0.40) + (token_efficiency * 0.20) + (speed * 0.20) + (solution_size * 0.10) + (cost_efficiency * 0.10)
 ```
 
 ### Component Breakdown
@@ -48,21 +64,33 @@ score = (correctness * 0.40) + (efficiency * 0.30) + (elegance * 0.15) + (speed 
 - Binary pass/fail per test case, percentage of cases passed
 - Must score > 0 to appear on leaderboard
 
-**Efficiency (0-100, weight: 30%)**
+**Token Efficiency (0-100, weight: 20%)**
 - `efficiency = 100 * (1 - your_tokens / max_tokens_in_challenge)`
 - Human-only submissions (`tokens_consumed = 0`) get 100
-- Measures: how much compute did you burn to get here?
 - Lower token consumption = higher score
 
-**Elegance (0-100, weight: 15%)**
-- `lines_changed` relative to challenge median
-- Fewer lines for the same correctness = higher score
-- Bonus for solutions under the challenge's "par" line count
-
-**Speed (0-100, weight: 15%)**
+**Speed (0-100, weight: 20%)**
 - `wall_seconds` relative to challenge median
 - Faster = higher score
-- Normalized per challenge (some problems are meant to be slow)
+- Normalized per challenge
+
+**Solution Size (0-100, weight: 10%)**
+- `lines_changed` relative to challenge par
+- Fewer lines for the same correctness = higher score
+
+**Cost Efficiency (0-100, weight: 10%)**
+- `api_cost_usd` relative to challenge median
+- Lower cost = higher score
+- Human-only submissions get 100
+
+### Technique Signatures (Display-Only in v0)
+
+Technique data (tools used, human iterations, session notes) is **displayed on the
+leaderboard** but does **not** affect the composite score in v0. This is deliberate —
+technique-path scoring is the platform's long-term moat, but premature commitment to
+a formula that feels unfair kills community trust.
+
+The community will vote on when and how technique data enters the composite formula.
 
 ### Category Adjustments
 
@@ -72,7 +100,7 @@ Scores are comparable within a category. Cross-category comparison uses an **eff
 efficiency_ratio = tokens_consumed / max(lines_changed, 1)
 ```
 
-Lower ratio = more efficient use of compute per line of output. This lets a human who wrote 20 lines in 30 minutes compare meaningfully against an LLM that consumed 50K tokens to produce the same 20 lines.
+Lower ratio = more efficient use of compute per line of output.
 
 ## Leaderboard
 
