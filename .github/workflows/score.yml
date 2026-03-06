@@ -1,0 +1,104 @@
+name: Score Submission
+
+on:
+  pull_request:
+    paths:
+      - 'submissions/**'
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Detect submission
+        id: detect
+        run: |
+          # Find which challenge this submission is for
+          CHANGED=$(git diff --name-only ${{ github.event.pull_request.base.sha }} HEAD -- 'submissions/')
+          echo "Changed files: $CHANGED"
+
+          # Extract challenge ID from path (submissions/<challenge-id>/<handle>/...)
+          CHALLENGE_ID=$(echo "$CHANGED" | head -1 | cut -d'/' -f2)
+          HANDLE=$(echo "$CHANGED" | head -1 | cut -d'/' -f3)
+
+          echo "challenge_id=$CHALLENGE_ID" >> $GITHUB_OUTPUT
+          echo "handle=$HANDLE" >> $GITHUB_OUTPUT
+          echo "submission_dir=submissions/$CHALLENGE_ID/$HANDLE" >> $GITHUB_OUTPUT
+
+      - name: Validate technique.json
+        run: |
+          TECHNIQUE="${{ steps.detect.outputs.submission_dir }}/technique.json"
+          if [ ! -f "$TECHNIQUE" ]; then
+            echo "::error::Missing technique.json in submission"
+            exit 1
+          fi
+          python3 -c "
+          import json, sys
+          t = json.load(open('$TECHNIQUE'))
+          required = ['category', 'tools_used', 'tokens_consumed', 'wall_seconds', 'lines_changed']
+          missing = [k for k in required if k not in t]
+          if missing:
+              print(f'Missing fields: {missing}')
+              sys.exit(1)
+          if t['category'] not in ('human', 'llm', 'centaur'):
+              print(f'Invalid category: {t[\"category\"]}')
+              sys.exit(1)
+          print('technique.json: OK')
+          "
+
+      - name: Score Challenge 001
+        if: steps.detect.outputs.challenge_id == '001'
+        id: score_001
+        run: |
+          SOLUTION="${{ steps.detect.outputs.submission_dir }}/solution.py"
+          if [ ! -f "$SOLUTION" ]; then
+            echo "::error::Missing solution.py for challenge 001"
+            exit 1
+          fi
+          python3 challenges/001-bytes-per-token/scoring.py "$SOLUTION" 2>&1 | tee /tmp/score_output.txt
+
+      - name: Score Challenge 002
+        if: steps.detect.outputs.challenge_id == '002'
+        id: score_002
+        run: |
+          python3 challenges/002-function-distiller/scoring.py "${{ steps.detect.outputs.submission_dir }}" --dry-run 2>&1 | tee /tmp/score_output.txt
+
+      - name: Post score as PR comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let output = '';
+            try {
+              output = fs.readFileSync('/tmp/score_output.txt', 'utf8');
+            } catch {
+              output = 'Scoring did not produce output.';
+            }
+
+            const handle = '${{ steps.detect.outputs.handle }}';
+            const challenge = '${{ steps.detect.outputs.challenge_id }}';
+
+            const body = `## Arena Score: Challenge ${challenge}
+            **Submitter:** ${handle}
+
+            \`\`\`
+            ${output}
+            \`\`\`
+
+            _Auto-scored by Arena CI_`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

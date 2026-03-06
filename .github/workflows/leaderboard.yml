@@ -1,0 +1,31 @@
+name: Update Leaderboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'submissions/**'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rebuild leaderboard
+        run: python3 scoring/aggregate.py
+
+      - name: Commit updated leaderboard
+        run: |
+          git config user.name "arena-bot"
+          git config user.email "arena-bot@users.noreply.github.com"
+          git add leaderboard/data.json
+          git diff --cached --quiet || git commit -m "chore: update leaderboard"
+          git push

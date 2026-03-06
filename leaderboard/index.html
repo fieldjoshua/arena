@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Leaderboard</title>
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --fg: #e0e0e0;
+            --accent: #00d4aa;
+            --border: #222;
+            --card-bg: #111;
+            --muted: #888;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            background: var(--bg);
+            color: var(--fg);
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        h1 { margin-bottom: 0.5rem; }
+        h1 a { color: var(--accent); text-decoration: none; }
+        .subtitle { color: var(--muted); margin-bottom: 2rem; }
+        h2 { margin: 2rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+        th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); }
+        th { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .rank-1 { color: #ffd700; font-weight: 700; }
+        .rank-2 { color: #c0c0c0; }
+        .rank-3 { color: #cd7f32; }
+        .category { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 3px; text-transform: uppercase; }
+        .category-human { background: #1a3a2a; color: #4ade80; }
+        .category-llm { background: #1a2a3a; color: #60a5fa; }
+        .category-centaur { background: #3a2a1a; color: #fbbf24; }
+        .empty { text-align: center; color: var(--muted); padding: 3rem; font-style: italic; }
+        footer { text-align: center; padding: 2rem 0; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--border); }
+        footer a { color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><a href="../">&gt; Arena</a> / Leaderboard</h1>
+        <p class="subtitle">Updated on every merge to main.</p>
+
+        <div id="content">
+            <div class="empty">Loading leaderboard data...</div>
+        </div>
+
+        <footer>
+            <a href="../">Home</a> &middot;
+            <a href="../RULES.md">Rules</a> &middot;
+            <a href="https://github.com/fieldjoshua/arena">GitHub</a>
+        </footer>
+    </div>
+
+    <script>
+        function categoryBadge(technique) {
+            if (!technique) return '';
+            const cat = technique.category || 'unknown';
+            return `<span class="category category-${cat}">${cat}</span>`;
+        }
+
+        function rankClass(rank) {
+            return rank <= 3 ? ` class="rank-${rank}"` : '';
+        }
+
+        fetch('data.json')
+            .then(r => r.json())
+            .then(data => {
+                const content = document.getElementById('content');
+                let html = '';
+
+                // Overall
+                if (data.overall && data.overall.length > 0) {
+                    html += '<h2>Overall Rankings</h2>';
+                    html += '<table><thead><tr><th>#</th><th>Handle</th><th>Challenges</th><th>Avg Score</th></tr></thead><tbody>';
+                    data.overall.forEach(e => {
+                        html += `<tr><td${rankClass(e.rank)}>${e.rank}</td><td>${e.handle}</td><td>${e.challenges_attempted}</td><td>${e.avg_composite}</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                }
+
+                // Per challenge
+                if (data.challenges) {
+                    for (const [id, entries] of Object.entries(data.challenges)) {
+                        html += `<h2>Challenge ${id}</h2>`;
+                        if (entries.length === 0) {
+                            html += '<p class="empty">No submissions yet.</p>';
+                            continue;
+                        }
+                        html += '<table><thead><tr><th>#</th><th>Handle</th><th>Category</th><th>Correct</th><th>Effic.</th><th>Eleg.</th><th>Speed</th><th>Total</th></tr></thead><tbody>';
+                        entries.forEach(e => {
+                            html += `<tr>
+                                <td${rankClass(e.rank)}>${e.rank}</td>
+                                <td>${e.handle}</td>
+                                <td>${categoryBadge(e.technique)}</td>
+                                <td>${e.correctness || '-'}</td>
+                                <td>${e.efficiency || '-'}</td>
+                                <td>${e.elegance || '-'}</td>
+                                <td>${e.speed || '-'}</td>
+                                <td><strong>${e.composite || '-'}</strong></td>
+                            </tr>`;
+                        });
+                        html += '</tbody></table>';
+                    }
+                }
+
+                if (!html) {
+                    html = '<div class="empty">No submissions yet. Be the first to compete.</div>';
+                }
+
+                content.innerHTML = html;
+            })
+            .catch(() => {
+                document.getElementById('content').innerHTML =
+                    '<div class="empty">No submissions yet. Be the first to compete.</div>';
+            });
+    </script>
+</body>
+</html>

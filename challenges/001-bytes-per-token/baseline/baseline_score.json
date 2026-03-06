@@ -1,0 +1,9 @@
+{
+  "method": "len(text) // 4",
+  "mae_tokens": 28.4,
+  "mae_percent": 23.7,
+  "worst_case_error_percent": 65.0,
+  "worst_case_content_type": "code",
+  "samples_tested": 50,
+  "note": "MAE computed against cl100k_base tokenizer on hidden test set."
+}

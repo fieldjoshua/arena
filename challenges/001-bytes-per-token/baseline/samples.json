@@ -1,0 +1,122 @@
+[
+  {
+    "id": "code_python_01",
+    "type": "code",
+    "text": "def fibonacci(n: int) -> int:\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 1:\n        return n\n    a, b = 0, 1\n    for _ in range(2, n + 1):\n        a, b = b, a + b\n    return b\n\n\ndef factorial(n: int) -> int:\n    \"\"\"Return n factorial.\"\"\"\n    if n < 0:\n        raise ValueError(\"n must be non-negative\")\n    result = 1\n    for i in range(2, n + 1):\n        result *= i\n    return result\n",
+    "tokens": 115
+  },
+  {
+    "id": "code_python_02",
+    "type": "code",
+    "text": "class LRUCache:\n    def __init__(self, capacity: int):\n        self.capacity = capacity\n        self.cache: dict[str, Any] = {}\n        self.order: list[str] = []\n\n    def get(self, key: str) -> Any | None:\n        if key not in self.cache:\n            return None\n        self.order.remove(key)\n        self.order.append(key)\n        return self.cache[key]\n\n    def put(self, key: str, value: Any) -> None:\n        if key in self.cache:\n            self.order.remove(key)\n        elif len(self.cache) >= self.capacity:\n            oldest = self.order.pop(0)\n            del self.cache[oldest]\n        self.cache[key] = value\n        self.order.append(key)\n",
+    "tokens": 148
+  },
+  {
+    "id": "code_python_03",
+    "type": "code",
+    "text": "import re\nfrom pathlib import Path\n\ndef parse_log_file(path: Path) -> list[dict[str, str]]:\n    pattern = re.compile(\n        r'(?P<timestamp>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2})'\n        r'\\s+(?P<level>\\w+)'\n        r'\\s+(?P<message>.+)$'\n    )\n    entries = []\n    for line in path.read_text().splitlines():\n        m = pattern.match(line)\n        if m:\n            entries.append(m.groupdict())\n    return entries\n",
+    "tokens": 108
+  },
+  {
+    "id": "code_javascript_01",
+    "type": "code",
+    "text": "function debounce(fn, delay) {\n  let timer = null;\n  return function (...args) {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn.apply(this, args), delay);\n  };\n}\n\nfunction throttle(fn, limit) {\n  let inThrottle = false;\n  return function (...args) {\n    if (!inThrottle) {\n      fn.apply(this, args);\n      inThrottle = true;\n      setTimeout(() => (inThrottle = false), limit);\n    }\n  };\n}\n",
+    "tokens": 116
+  },
+  {
+    "id": "code_sql_01",
+    "type": "code",
+    "text": "SELECT\n    u.id,\n    u.username,\n    COUNT(o.id) AS order_count,\n    SUM(o.total_amount) AS total_spent,\n    AVG(o.total_amount) AS avg_order_value,\n    MAX(o.created_at) AS last_order_date\nFROM users u\nLEFT JOIN orders o ON u.id = o.user_id\nWHERE u.created_at >= '2024-01-01'\n    AND u.status = 'active'\nGROUP BY u.id, u.username\nHAVING COUNT(o.id) > 0\nORDER BY total_spent DESC\nLIMIT 100;\n",
+    "tokens": 118
+  },
+  {
+    "id": "prose_technical_01",
+    "type": "prose",
+    "text": "Token estimation is a fundamental problem in LLM-powered systems. Every API call requires predicting how many tokens a piece of text will consume, because billing, rate limiting, and context window management all depend on accurate counts. The naive approach of dividing byte length by four works surprisingly well for English prose, where the average token is about 3.5-4 bytes. But this heuristic breaks down for code, which uses shorter identifiers, more punctuation, and denser syntax. A Python function with single-character variables and operators can have a bytes-per-token ratio as low as 2.4, meaning the len//4 heuristic overcounts by 65 percent.",
+    "tokens": 128
+  },
+  {
+    "id": "prose_technical_02",
+    "type": "prose",
+    "text": "The compression crossover wall is a phenomenon observed in knowledge distillation systems. When compressing a document from its original length down to a target budget, quality degrades gradually at first but then hits a cliff. In our experiments, this cliff appears at approximately 1,500 tokens for typical technical documents. Above this threshold, lossy compression preserves the essential structure and key facts. Below it, critical relationships between concepts are lost, and the compressed output becomes misleading rather than merely incomplete. This has practical implications for any system that packs multiple documents into a fixed context window.",
+    "tokens": 109
+  },
+  {
+    "id": "prose_narrative_01",
+    "type": "prose",
+    "text": "She walked into the coffee shop at precisely seven fifteen, as she had every morning for the past three years. The barista already had her order ready: a double espresso with a thin layer of foam, served in the small ceramic cup she preferred over paper. It was one of those rituals that made the chaos of city life bearable. Outside, the rain had turned the sidewalk into a mirror, reflecting the neon signs of the shops across the street. She took her usual seat by the window and opened her notebook to a blank page.",
+    "tokens": 103
+  },
+  {
+    "id": "prose_academic_01",
+    "type": "prose",
+    "text": "Recent advances in retrieval-augmented generation have demonstrated that grounding language model outputs in retrieved documents significantly reduces hallucination rates. However, the quality of the retrieval step remains a bottleneck. Traditional BM25 scoring treats each query term independently, missing semantic relationships that dense retrieval methods capture. Our approach combines sparse and dense signals through a learned weighting function that adapts to query complexity. For simple factual queries, BM25 dominates. For multi-hop reasoning queries, dense retrieval contributes disproportionately to final answer quality.",
+    "tokens": 103
+  },
+  {
+    "id": "prose_conversational_01",
+    "type": "prose",
+    "text": "So here's the thing about building software with AI assistants: it's not about the AI writing the code for you. That's the surface-level take everyone defaults to. The real value is in the conversation itself. When you explain a problem to an AI, you're forced to articulate what you actually want, which is often different from what you think you want. The AI asks clarifying questions, proposes alternatives you hadn't considered, and catches assumptions you didn't know you were making. It's pair programming where your partner has read every Stack Overflow answer ever written but has zero opinions about tabs versus spaces.",
+    "tokens": 115
+  },
+  {
+    "id": "mixed_01",
+    "type": "mixed",
+    "text": "The `estimate_tokens` function needs to handle several edge cases:\n\n1. Empty strings should return 0\n2. Single characters should return 1\n3. Very long texts (100KB+) should not timeout\n\nHere's the basic structure:\n\n```python\ndef estimate_tokens(text: str) -> int:\n    if not text:\n        return 0\n    # Base estimate from byte length\n    base = len(text.encode('utf-8')) / 4\n    # Adjust for content type\n    code_ratio = _detect_code_ratio(text)\n    adjustment = 1.0 + (code_ratio * 0.3)\n    return max(1, int(base * adjustment))\n```\n\nThe key insight is that code has more tokens per byte than prose, so we need to adjust upward when we detect code-like content.",
+    "tokens": 149
+  },
+  {
+    "id": "mixed_02",
+    "type": "mixed",
+    "text": "## API Response Format\n\nAll endpoints return JSON with this structure:\n\n```json\n{\n  \"status\": \"ok\",\n  \"data\": { ... },\n  \"meta\": {\n    \"request_id\": \"abc-123\",\n    \"tokens_used\": 1500\n  }\n}\n```\n\nError responses use HTTP status codes:\n- `400` — Bad request (missing required fields)\n- `401` — Unauthorized (invalid or expired token)\n- `429` — Rate limited (retry after `Retry-After` header)\n- `500` — Internal error (include `request_id` in bug reports)\n\nRate limits are per-API-key: 100 requests/minute for free tier, 1000/minute for paid.",
+    "tokens": 143
+  },
+  {
+    "id": "mixed_03",
+    "type": "mixed",
+    "text": "To reproduce the bug:\n\n1. Create a vault with more than 500 notes\n2. Run `hub manifest indexes --area 10`\n3. Observe that the index generation stalls at ~80% progress\n\nThe issue is in `_build_area_index()` at line 142:\n\n```python\nfor note in notes:\n    content = note.read_content()  # This reads the full file\n    tokens = len(content) // 4     # And this underestimates for code\n    if budget - tokens < 0:\n        break\n```\n\nThe fix is to use content-aware estimation instead of `len//4`. The budget check exits early, skipping the last 20% of notes in code-heavy areas. Confirmed that switching to a calibrated estimator resolves the stall.",
+    "tokens": 144
+  },
+  {
+    "id": "code_config_01",
+    "type": "code",
+    "text": "# pyproject.toml\n[build-system]\nrequires = [\"hatchling\"]\nbuild-backend = \"hatchling.build\"\n\n[project]\nname = \"optimize-hub\"\nversion = \"1.4.0\"\ndescription = \"Knowledge actualization engine\"\nrequires-python = \">= 3.11\"\nauthors = [{name = \"Josh Field\"}]\n\n[project.optional-dependencies]\ndev = [\n    \"pytest >= 8.0\",\n    \"pytest-cov >= 5.0\",\n    \"ruff >= 0.4\",\n    \"mypy >= 1.10\",\n]\nmcp = [\n    \"fastmcp >= 0.3\",\n]\n\n[tool.ruff]\nline-length = 100\ntarget-version = \"py311\"\n\n[tool.ruff.lint]\nselect = [\"E\", \"F\", \"I\", \"UP\", \"SIM\"]\n",
+    "tokens": 168
+  },
+  {
+    "id": "code_shell_01",
+    "type": "code",
+    "text": "#!/usr/bin/env bash\nset -euo pipefail\n\nREPO_ROOT=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/..\" && pwd)\"\nVENV=\"${REPO_ROOT}/.venv\"\n\nif [[ ! -d \"$VENV\" ]]; then\n    echo \"Creating virtual environment...\"\n    python3 -m venv \"$VENV\"\nfi\n\nsource \"${VENV}/bin/activate\"\npip install -q -e \".[dev]\"\n\necho \"Running tests...\"\npytest tests/ -v --tb=short -q\n\necho \"Running linter...\"\nruff check src/ tests/\n\necho \"All checks passed.\"\n",
+    "tokens": 121
+  },
+  {
+    "id": "prose_email_01",
+    "type": "prose",
+    "text": "Hi team,\n\nQuick update on the token estimation work. We ran the calibration experiment across 200 samples and the results are clear: the len//4 heuristic is off by 24% on average, with the worst cases hitting 65% error on dense code blocks.\n\nI've attached the full breakdown by content type. The short version: we need content-aware estimation, not a single divisor. The good news is that a simple regex-based code detector gets us most of the way there. A two-bucket approach (code vs prose, different divisors for each) reduces MAE from 24% to about 8%.\n\nNext steps: I'll have a PR up by end of week with the new estimator and tests against the calibration dataset.\n\nBest,\nJosh",
+    "tokens": 144
+  },
+  {
+    "id": "code_yaml_01",
+    "type": "code",
+    "text": "name: CI\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  test:\n    runs-on: ubuntu-latest\n    strategy:\n      matrix:\n        python-version: ['3.11', '3.12', '3.13']\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-python@v5\n        with:\n          python-version: ${{ matrix.python-version }}\n      - run: pip install -e '.[dev]'\n      - run: pytest tests/ -v --tb=short\n      - run: ruff check src/ tests/\n",
+    "tokens": 132
+  },
+  {
+    "id": "mixed_04",
+    "type": "mixed",
+    "text": "The knowledge model for area 10 (Work) looks like this:\n\n```yaml\narea: 10 Work\nkey_notes:\n  - path: \"10 Work/11 Projects/11.4 |HUB|/memory/PROJECT-DISTILLATE.md\"\n    purpose: \"Settled architectural decisions and common mistakes\"\n    priority: 1\n  - path: \"10 Work/11 Projects/11.4 |HUB|/CHANGELOG.md\"\n    purpose: \"Version history and feature tracking\"\n    priority: 2\nkeywords:\n  - knowledge actualization\n  - context diffusion\n  - protocol 7\n  - session distillation\nconstraints:\n  max_notes: 20\n  prefer_recent: true\n```\n\nThe `purpose` field is critical — it tells the retriever WHY this note matters, not just WHICH note it is. Without purpose annotations, the knowledge model degenerates into a keyword list.",
+    "tokens": 181
+  },
+  {
+    "id": "prose_legal_01",
+    "type": "prose",
+    "text": "This patent application claims priority to provisional application number 63/XXX,XXX filed on January 15, 2026. The present invention relates to methods and systems for continuous context connection in artificial intelligence systems, and more particularly to techniques for capturing, crystallizing, and connecting knowledge across multiple interaction sessions with large language models. The disclosed system implements a three-protocol architecture comprising session continuance, disclosure continuance, and retrieval continuance, which together form a closed feedback loop that improves knowledge retrieval quality with each successive interaction.",
+    "tokens": 97
+  },
+  {
+    "id": "code_rust_01",
+    "type": "code",
+    "text": "use std::collections::HashMap;\n\npub struct TokenEstimator {\n    code_patterns: Vec<regex::Regex>,\n    bpt_code: f64,\n    bpt_prose: f64,\n}\n\nimpl TokenEstimator {\n    pub fn new() -> Self {\n        Self {\n            code_patterns: vec![\n                regex::Regex::new(r\"(fn|let|mut|pub|impl|struct|enum)\\s\").unwrap(),\n                regex::Regex::new(r\"[{};]\\s*$\").unwrap(),\n            ],\n            bpt_code: 2.8,\n            bpt_prose: 3.7,\n        }\n    }\n\n    pub fn estimate(&self, text: &str) -> usize {\n        let code_lines = text.lines()\n            .filter(|l| self.code_patterns.iter().any(|p| p.is_match(l)))\n            .count();\n        let total_lines = text.lines().count().max(1);\n        let code_ratio = code_lines as f64 / total_lines as f64;\n        let bpt = self.bpt_code * code_ratio + self.bpt_prose * (1.0 - code_ratio);\n        (text.len() as f64 / bpt).round() as usize\n    }\n}\n",
+    "tokens": 222
+  }
+]
